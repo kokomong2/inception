@@ -1,0 +1,132 @@
+version: "3"
+
+services:
+  mariadb:
+    build: ./${REQ_FOLDER}/mariadb
+    container_name: mariadb
+    env_file:
+      - ${ENV_FILE}
+    expose:
+      - "3306"
+    healthcheck:
+      interval: 5s
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin ping -h localhost -u root --password=$$MYSQL_ROOT_PASSWORD || exit 1",
+        ]
+      timeout: 3s
+      retries: 3
+      start_period: 1s
+    image: mariadb:sgo
+    init: true
+    networks:
+      - inception
+    restart: on-failure:3
+    volumes:
+      - mariadb:/var/lib/mysql
+
+  nginx:
+    build: ./${REQ_FOLDER}/nginx
+    container_name: nginx
+    depends_on:
+      - wordpress
+      - website
+    env_file:
+      - ${ENV_FILE}
+    environment:
+      - CADVISOR_PORT=${CADVISOR_PORT}
+    expose:
+      - "443"
+    healthcheck:
+      interval: 5s
+      test: ["CMD-SHELL", "curl -k https://localhost:443 || exit 1"]
+      timeout: 3s
+      retries: 3
+      start_period: 1s
+    hostname: ${DOMAIN}
+    image: nginx:sgo
+    init: true
+    networks:
+      - inception
+    ports:
+      - "443:443"
+    restart: on-failure
+    secrets:
+      - server.pem
+      - server.key
+    volumes:
+      - wordpress:/var/www
+    userns_mode: "host"
+
+  wordpress:
+    build: ./${REQ_FOLDER}/wordpress
+    container_name: wordpress
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    env_file:
+      - ${ENV_FILE}
+    expose:
+      - "9000"
+    healthcheck:
+      interval: 5s
+      test: ["CMD-SHELL", "cgi-fcgi -bind -connect localhost:9000 || exit 1"]
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    image: wordpress:sgo
+    init: true
+    networks:
+      - inception
+    restart: on-failure
+    volumes:
+      - wordpress:/var/www
+
+  website:
+    build: ${REQ_FOLDER}/bonus/website
+    container_name: website
+    healthcheck:
+      interval: 5s
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      timeout: 3s
+      retries: 3
+    image: website:sgo
+    init: true
+    networks:
+      - inception
+    restart: on-failure:3
+    volumes:
+      - website:/var/www/html
+
+# Network Bridge for the containers
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+# Volumes from the host that will be mounted to the containers, so that the data is persistent
+volumes:
+  mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      o: "bind"
+      type: "none"
+      device: ${VOLUME_DIR}/mariadb
+
+  wordpress:
+    name: wordpress
+    driver: local
+    driver_opts:
+      o: "bind"
+      type: "none"
+      device: ${VOLUME_DIR}/wordpress
+
+  website:
+    name: website
+    driver: local
+    driver_opts:
+      o: "bind"
+      type: "none"
+      device: ${VOLUME_DIR}/website
