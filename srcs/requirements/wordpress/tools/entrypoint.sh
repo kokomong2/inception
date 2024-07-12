@@ -26,20 +26,8 @@ if ! wp core is-installed; then
 	wp user create	${WP_USER_ID}							\
 					${WP_USER_EMAIL} 						\
 					--user_pass=${WP_USER_PASSWORD}
-	# wp theme install go --activate --allow-root
 fi
 
-if ! wp plugin get redis-cache 2> /dev/null; then
-    wp config set WP_REDIS_HOST redis
-    wp config set WP_REDIS_PORT 6379
-	wp config set WP_REDIS_DATABASE 0
-	wp config set WP_CACHE true --raw
-    wp plugin install redis-cache --activate --path=/var/www
-    wp redis enable
-fi
-
-wp core update-db
-wp plugin update --all
 
 php-fpm81 -F
 

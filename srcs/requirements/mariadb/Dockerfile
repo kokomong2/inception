@@ -9,7 +9,7 @@
 # Choose the base image for the build process, with FROM command.
 # The base image is the first layer in the Dockerfile and it is the image that all subsequent layers are built upon.
 # In Docker, a container is an image with a read-write layer on top of read-only layer.
-FROM alpine:3.19.0
+FROM alpine:3.19
 
 # [RUN]
 # Execute a command in a new layer on top of the current image and commit the results.

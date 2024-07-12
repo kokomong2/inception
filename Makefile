@@ -49,7 +49,7 @@ export COMPOSE_FILE		:= $(SRC_FOLDER)/docker-compose.yml
 all: $(NAME)
 
 $(NAME): check_env set_certificate set_hosts
-	@mkdir -p $(MARIADB_VOLUME_DIR) $(WORDPRESS_VOLUME_DIR) $(WEBSITE_VOLUME_DIR) $(MONITOR_VOLUME_DIR)
+	@mkdir -p $(MARIADB_VOLUME_DIR) $(WORDPRESS_VOLUME_DIR)
 	docker compose up --build -d
 
 clean:

@@ -30,12 +30,10 @@ services:
     build: ./${REQ_FOLDER}/nginx
     container_name: nginx
     depends_on:
-      - wordpress
-      - website
+      wordpress:
+        condition: service_healthy
     env_file:
       - ${ENV_FILE}
-    environment:
-      - CADVISOR_PORT=${CADVISOR_PORT}
     expose:
       - "443"
     healthcheck:
@@ -53,11 +51,10 @@ services:
       - "443:443"
     restart: on-failure
     secrets:
-      - server.pem
-      - server.key
+      - localhost.pem
+      - localhost.key
     volumes:
       - wordpress:/var/www
-    userns_mode: "host"
 
   wordpress:
     build: ./${REQ_FOLDER}/wordpress
@@ -83,29 +80,17 @@ services:
     volumes:
       - wordpress:/var/www
 
-  website:
-    build: ${REQ_FOLDER}/bonus/website
-    container_name: website
-    healthcheck:
-      interval: 5s
-      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
-      timeout: 3s
-      retries: 3
-    image: website:sgo
-    init: true
-    networks:
-      - inception
-    restart: on-failure:3
-    volumes:
-      - website:/var/www/html
+secrets:
+  localhost.pem:
+    file: ./requirements/certificates/localhost.pem
+  localhost.key:
+    file: ./requirements/certificates/localhost.key
 
-# Network Bridge for the containers
 networks:
   inception:
     name: inception
     driver: bridge
 
-# Volumes from the host that will be mounted to the containers, so that the data is persistent
 volumes:
   mariadb:
     name: mariadb
@@ -122,11 +107,3 @@ volumes:
       o: "bind"
       type: "none"
       device: ${VOLUME_DIR}/wordpress
-
-  website:
-    name: website
-    driver: local
-    driver_opts:
-      o: "bind"
-      type: "none"
-      device: ${VOLUME_DIR}/website

@@ -9,7 +9,7 @@
 # Choose the base image for the build process, with FROM command.
 # The base image is the first layer in the Dockerfile and it is the image that all subsequent layers are built upon.
 # In Docker, a container is an image with a read-write layer on top of read-only layer.
-FROM alpine:3.19.0
+FROM alpine:3.19
 
 # [ENV]
 # Set environment variables. These variables are available in Dockerfile and Container.
@@ -60,6 +60,8 @@ RUN apk upgrade --no-cache &&                           \
                         fcgi &&                         \
     adduser -u 1000 -D -h /var/www ${SERVICE_USER} &&   \
     chown -R ${SERVICE_USER}:${SERVICE_USER} /var/www
+
+RUN ln -s /usr/bin/php81 /usr/bin/php
 
 # [WORKDIR]
 # Changes the directory in which the following instructions are executed, just like cd in a shell.
