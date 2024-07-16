@@ -1,4 +1,0 @@
-# Context: files and directories in the Dockerfile's directory. (Inception/srcs/requirements/wordpress/)
-# The context is the set of files at a specified location PATH or URL.
-# Every files and directories in the Dockerfile's directory are sent to Docker daemon as context.
-# Therefore, it is strongly recommended create a .dockerignore file in the Dockerfile's directory to exclude unnecessary files and directories.
